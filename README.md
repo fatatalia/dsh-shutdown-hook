@@ -28,12 +28,32 @@ launchctl kickstart / stop / Ctrl+C
 
 ## 用法（其他插件）
 
+**硬依赖模式**（服务必在，shutdown-hook 缺失时插件不激活）：
+
 ```js
 export const inject = ["shutdownHook"];  // cordis 保证本插件先加载
 
 ctx.shutdownHook.register("imessage-drain", async () => {
   await core.drain();  // 等投递链清空
 }, { timeoutMs: 5000 });
+```
+
+**软依赖模式**（推荐：独立插件不强绑，服务缺失时优雅降级，延迟加载/重载自动补注册）：
+
+```js
+// 不要 inject "shutdownHook"
+let registered = false;
+const register = (barrier) => {
+  if (registered || !barrier) return;
+  barrier.register("imessage-drain", async () => { await core.drain(); }, { timeoutMs: 5000 });
+  registered = true;
+};
+register(ctx.get("shutdownHook"));  // 立即尝试（可能尚未加载）
+ctx.on("internal/service", (name, value) => {  // 服务出现/注销事件
+  if (name !== "shutdownHook") return;
+  if (value) register(value);
+  else registered = false;
+});
 ```
 
 服务 API：
