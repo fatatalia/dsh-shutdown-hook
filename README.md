@@ -11,9 +11,9 @@ agent 回复经 iMessage 等渠道是**异步投递**的（`assistant/message` �
 ## 用法（其他插件）
 
 ```js
-export const inject = ["shutdownBarrier"];  // cordis 保证本插件先加载
+export const inject = ["shutdownHook"];  // cordis 保证本插件先加载
 
-ctx.shutdownBarrier.register("imessage-drain", async () => {
+ctx.shutdownHook.register("imessage-drain", async () => {
   await core.drain();  // 等投递链清空
 }, { timeoutMs: 5000 });
 ```

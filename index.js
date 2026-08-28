@@ -3,7 +3,7 @@
  *
  * 职责：
  *  - 唯一 SIGTERM/SIGINT 拦截点（dsh 自身未注册信号 handler，插件可安全接管）
- *  - 提供 `shutdownBarrier` 服务：其他插件注册"退出前检查"（drain/flush/落盘）
+ *  - 提供 `shutdownHook` 服务：其他插件注册"退出前检查"（drain/flush/落盘）
  *  - 收到信号 → 并行执行所有检查（各自超时 + 全局兜底）→ 全部完成 → process.exit(0)
  *
  * 为什么需要：
@@ -12,8 +12,8 @@
  *  不依赖模型自觉调用工具、不依赖 agent 纪律。
  *
  * 用法（其他插件）：
- *   export const inject = ["shutdownBarrier"];
- *   ctx.shutdownBarrier.register("imessage-drain", async () => { await core.drain(); }, { timeoutMs: 5000 });
+ *   export const inject = ["shutdownHook"];
+ *   ctx.shutdownHook.register("imessage-drain", async () => { await core.drain(); }, { timeoutMs: 5000 });
  *
  * 边界：
  *  - SIGKILL（kill -9）/ 进程崩溃：无法保证（进程直接死，任何方案都保证不了）
@@ -47,8 +47,8 @@ export function apply(ctx) {
   /** 退出前检查注册表：name -> { fn, timeoutMs } */
   const checks = new Map();
 
-  // 注册服务：其他插件 inject "shutdownBarrier" 后可用（cordis 保证本插件先加载）
-  ctx.provide("shutdownBarrier", {
+  // 注册服务：其他插件 inject "shutdownHook" 后可用（cordis 保证本插件先加载）
+  ctx.provide("shutdownHook", {
     /**
      * 注册一个退出前检查。
      * @param {string} name 检查名（日志标识）
@@ -56,7 +56,7 @@ export function apply(ctx) {
      * @param {{ timeoutMs?: number }} [opts] 超时（默认 5000ms）
      */
     register(name, fn, opts = {}) {
-      if (typeof fn !== "function") throw new TypeError("shutdownBarrier.register: fn 必须是函数");
+      if (typeof fn !== "function") throw new TypeError("shutdownHook.register: fn 必须是函数");
       const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
       checks.set(name, { fn, timeoutMs });
       log.info(`已注册退出前检查: ${name}（超时 ${timeoutMs}ms）`);
