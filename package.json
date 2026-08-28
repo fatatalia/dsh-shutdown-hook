@@ -1,0 +1,25 @@
+{
+  "name": "dsh-shutdown-hook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "dsh 统一退出屏障插件：唯一 SIGTERM/SIGINT 拦截点，其他插件注册退出前检查（drain/flush/落盘），退出时统一并行调度，全部完成才 process.exit。解决重启/停止时异步投递丢消息问题。",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}

@@ -1,0 +1,5 @@
+# dsh-shutdown-hook bundle patch
+# 插入 host 插件行：统一退出屏障（SIGTERM/SIGINT 拦截 + 退出前检查调度）。
+- insert:
+    - id: dsh-shutdown-hook
+      name: dsh-shutdown-hook
