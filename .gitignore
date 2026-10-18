@@ -1,0 +1,9 @@
+# ── 统一补全（2026-10-18）──
+node_modules/
+*.log
+.DS_Store
+*.bak-*
+.backup-*/
+*.orig
+*.tmp
+*.swp
